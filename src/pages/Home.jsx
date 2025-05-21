@@ -114,13 +114,15 @@ const Home = () => {
             >
               Get Started 
               <ChevronRightIcon className="ml-2 h-5 w-5" />
+            </button>
             <button 
               className="bg-white/10 hover:bg-white/20 border border-white/20 text-white 
                         font-medium px-5 py-2.5 rounded-lg flex items-center transition-all"
               onClick={() => document.getElementById('main-feature').scrollIntoView({ behavior: 'smooth' })}
             >
-              Try Demo
+              try demo
             </button>
+          </div>
           </div>
         </div>
       </header>

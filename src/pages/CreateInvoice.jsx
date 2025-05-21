@@ -791,8 +791,7 @@ Thank you for your business!
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Units</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
-                              <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
-                              <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Actions</th>
+                              <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -963,15 +962,14 @@ Thank you for your business!
                           <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
                           <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
                           <td className="p-3 text-right">
-                            <span className="text-xs text-surface-500 ml-1">
+                            {item.measurement === 'custom quote' ? '-' : item.quantity}
                           </td>
                           <td className="p-3 text-right">
                             ${item.rate.toFixed(2)}
                             {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
                               <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
                             )}
-                              {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
-                            </span>
+                            <span className="text-xs text-surface-500 ml-1">{item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}</span>
                           </td>
                           <td className="p-3 text-right">
                             ${item.rate.toFixed(2)}

@@ -87,6 +87,20 @@ const Home = () => {
               </div>
               <h1 className="text-2xl md:text-3xl font-bold">DesignBill</h1>
             </div>
+            <div className="flex items-center space-x-3">
+              <a 
+                href="/login" 
+                className="text-white/90 hover:text-white font-medium transition-all"
+              >
+                Login
+              </a>
+              <a 
+                href="/signup"
+                className="bg-white text-primary-dark hover:bg-white/90 font-medium px-4 py-2 rounded-lg transition-all"
+              >
+                Sign Up
+              </a>
+            </div>
           </div>
           
           <div className="mt-8 mb-4 max-w-2xl">

@@ -7,6 +7,8 @@ import { getIcon } from './utils/iconUtils';
 // Pages
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -67,6 +69,21 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Route that redirects authenticated users
+const PublicOnlyRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  
+  if (isAuthenticated) {
+    return <Navigate 
+      to="/dashboard" 
+      replace 
+      state={{ from: location }} />;
+  }
+  
+  return children;
+};
+
 function App() {
   const location = useLocation();
   
@@ -78,6 +95,12 @@ function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={
+              <PublicOnlyRoute><Login /></PublicOnlyRoute>
+            } />
+            <Route path="/signup" element={
+              <PublicOnlyRoute><Signup /></PublicOnlyRoute>
+            } />
             <Route path="/dashboard" element={
               <ProtectedRoute><Dashboard /></ProtectedRoute>
             } />

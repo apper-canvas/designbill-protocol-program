@@ -814,7 +814,7 @@ Thank you for your business!
                                     value={item.dimensions} 
                                     onChange={(e) => updateLineItem(item.id, 'dimensions', e.target.value)} 
                                     className="form-input text-sm py-1" 
-                                    placeholder="e.g. 60\" x 80\""
+                                    placeholder="e.g. 60&quot; x 80&quot;"
                                   />
                                 </td>
                                 <td className="py-2">
@@ -835,7 +835,6 @@ Thank you for your business!
                                     <option value="ru m">running meters</option>
                                     <option value="custom">custom</option>
                                   </select>
-                                  />
                                 </td>
                                 <td className="py-2">
                                   <select

@@ -97,7 +97,7 @@ const Invoices = () => {
               className="form-input pl-10"
             />
           </div>
-          <button className="btn btn-primary flex items-center" onClick={() => navigate('/invoices/create')}>
+          <button className="btn btn-primary flex items-center" onClick={() => navigate('/create-invoice')}>
             <PlusIcon className="w-5 h-5 mr-2" />
             New Invoice
           </button>

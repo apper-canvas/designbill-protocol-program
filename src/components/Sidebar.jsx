@@ -43,6 +43,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   ];
 
   // Sidebar animation variants
+        {
+          name: 'Payments',
+          href: '/payments',
+          icon: 'credit-card',
+          current: location.pathname === '/payments'
+        },
   const sidebarVariants = {
     open: {
       x: 0,

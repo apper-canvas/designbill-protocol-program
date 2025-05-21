@@ -117,7 +117,7 @@ const Home = () => {
                         font-medium px-5 py-2.5 rounded-lg flex items-center transition-all"
               onClick={() => document.getElementById('main-feature').scrollIntoView({ behavior: 'smooth' })}
             >
-              try demo
+              Try Demo
             </button>
           </div>
         </div>

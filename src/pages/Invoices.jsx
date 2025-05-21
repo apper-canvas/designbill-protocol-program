@@ -1,62 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getIcon } from '../utils/iconUtils';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 
 const Invoices = () => {
-  // Mock data for invoices
-  const [invoices, setInvoices] = useState([
+  // Sample data for demonstration
+  const sampleInvoices = [
     {
-      id: 'INV-2023-001',
-      client: 'Modern Living Spaces',
-      amount: '$3,250.00',
+      invoiceNumber: 'INV-2023-001',
+      client: { name: 'Modern Living Spaces' },
+      calculatedTotals: { total: 3250 },
       date: '2023-08-15',
       status: 'Paid'
     },
     {
-      id: 'INV-2023-002',
-      client: 'Greenfield Residence',
-      amount: '$4,800.00',
+      invoiceNumber: 'INV-2023-002',
+      client: { name: 'Greenfield Residence' },
+      calculatedTotals: { total: 4800 },
       date: '2023-08-10',
       status: 'Pending'
     },
     {
-      id: 'INV-2023-003',
-      client: 'Urban Loft Designs',
-      amount: '$2,150.00',
+      invoiceNumber: 'INV-2023-003',
+      client: { name: 'Urban Loft Designs' },
+      calculatedTotals: { total: 2150 },
       date: '2023-08-05',
       status: 'Paid'
     },
     {
-      id: 'INV-2023-004',
-      client: 'Coastal Home Renovations',
-      amount: '$5,975.00',
+      invoiceNumber: 'INV-2023-004',
+      client: { name: 'Coastal Home Renovations' },
+      calculatedTotals: { total: 5975 },
       date: '2023-07-28',
       status: 'Overdue'
     },
     {
-      id: 'INV-2023-005',
-      client: 'Elegant Interiors Co.',
-      amount: '$1,850.00',
+      invoiceNumber: 'INV-2023-005',
+      client: { name: 'Elegant Interiors Co.' },
+      calculatedTotals: { total: 1850 },
       date: '2023-07-20',
       status: 'Paid'
-    },
-    {
-      id: 'INV-2023-006',
-      client: 'Artisan Home Builders',
-      amount: '$7,400.00',
-      date: '2023-07-15',
-      status: 'Pending'
-    },
-    {
-      id: 'INV-2023-007',
-      client: 'Urban Paradise Gardens',
-      amount: '$2,750.00',
-      date: '2023-07-10',
-      status: 'Paid'
     }
-  ]);
+  ];
+
+  const [invoices, setInvoices] = useState([]);
+
+  // Load invoices from localStorage on mount
+  useEffect(() => {
+    const savedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+    
+    // If there are no saved invoices, use the sample data
+    if (savedInvoices.length === 0) {
+      setInvoices(sampleInvoices);
+    } else {
+      // Format saved invoices to match expected format
+      const formattedSavedInvoices = savedInvoices.map(inv => ({
+        ...inv
+      }));
+      setInvoices([...formattedSavedInvoices, ...sampleInvoices]);
+    }
+  }, []);
 
   const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
@@ -68,15 +72,19 @@ const Invoices = () => {
 
   // Filter invoices by status
   const filteredInvoices = filter === 'all' 
-    ? invoices 
-    : invoices.filter(invoice => invoice.status.toLowerCase() === filter.toLowerCase());
+    ? invoices
+    : invoices.filter(invoice => 
+        (invoice.status || 'Pending').toLowerCase() === filter.toLowerCase()
+      );
 
   const viewInvoice = (id) => {
-    toast.info(`Viewing invoice ${id}`);
+    // Navigate to the view invoice page
+    navigate(`/invoices/${id}`);
   };
 
   const deleteInvoice = (id) => {
     if (confirm('Are you sure you want to delete this invoice?')) {
+      localStorage.setItem('invoices', JSON.stringify(invoices.filter(invoice => invoice.invoiceNumber !== id)));
       setInvoices(invoices.filter(invoice => invoice.id !== id));
       toast.success(`Invoice ${id} deleted successfully`);
     }
@@ -97,7 +105,7 @@ const Invoices = () => {
               className="form-input pl-10"
             />
           </div>
-          <button className="btn btn-primary flex items-center" onClick={() => navigate('/create-invoice')}>
+          <button className="btn btn-primary flex items-center" onClick={() => navigate('/invoices/create')}>
             <PlusIcon className="w-5 h-5 mr-2" />
             New Invoice
           </button>
@@ -147,14 +155,18 @@ const Invoices = () => {
             <tbody>
               {filteredInvoices.map((invoice, index) => (
                 <tr key={index} className="border-b border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
-                  <td className="py-3 text-sm">{invoice.id}</td>
-                  <td className="py-3 text-sm">{invoice.client}</td>
-                  <td className="py-3 font-medium text-sm">{invoice.amount}</td>
-                  <td className="py-3 text-sm">{format(new Date(invoice.date), 'MMM d, yyyy')}</td>
+                  <td className="py-3 text-sm">{invoice.invoiceNumber}</td>
+                  <td className="py-3 text-sm">{invoice.client.name}</td>
+                  <td className="py-3 font-medium text-sm">
+                    ${invoice.calculatedTotals?.total.toFixed(2) || '0.00'}
+                  </td>
+                  <td className="py-3 text-sm">
+                    {invoice.date ? format(new Date(invoice.date), 'MMM d, yyyy') : '-'}
+                  </td>
                   <td className="py-3">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      invoice.status === 'Paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                      invoice.status === 'Pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      (invoice.status || 'Pending') === 'Paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                      (invoice.status || 'Pending') === 'Pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                     }`}>
                       {invoice.status}
@@ -163,14 +175,14 @@ const Invoices = () => {
                   <td className="py-3">
                     <div className="flex space-x-2">
                       <button 
-                        onClick={() => viewInvoice(invoice.id)}
+                        onClick={() => viewInvoice(invoice.invoiceNumber)}
                         className="text-primary hover:text-primary-dark text-sm font-medium transition-colors"
                       >
                         View
                       </button>
                       <button 
-                        onClick={() => deleteInvoice(invoice.id)}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
+                        onClick={() => deleteInvoice(invoice.invoiceNumber)}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors ml-2"
                       >
                         Delete
                       </button>

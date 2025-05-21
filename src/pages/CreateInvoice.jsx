@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getIcon } from '../utils/iconUtils';
@@ -9,6 +9,8 @@ import roomItems from '../utils/roomItems';
 
 const CreateInvoice = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
   
   // Icons
   const SaveIcon = getIcon('save');
@@ -22,6 +24,9 @@ const CreateInvoice = () => {
   const InfoIcon = getIcon('info');
   const HomeIcon = getIcon('home');
   const AlertIcon = getIcon('alert-circle');
+  const MailIcon = getIcon('mail');
+  const ShareIcon = getIcon('share');
+  const PrintIcon = getIcon('printer');
   
   // Form steps
   const steps = [
@@ -32,8 +37,10 @@ const CreateInvoice = () => {
   ];
   
   const [currentStep, setCurrentStep] = useState(0);
+  const [created, setCreated] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [customRoomName, setCustomRoomName] = useState('');
+  const [readOnly, setReadOnly] = useState(false);
   
   // Invoice state
   const [invoice, setInvoice] = useState({
@@ -66,7 +73,7 @@ const CreateInvoice = () => {
     discount: 0,
     total: 0
   });
-  
+
   // Validation states
   const [errors, setErrors] = useState({
     client: {},
@@ -74,6 +81,32 @@ const CreateInvoice = () => {
     rooms: false,
     items: false
   });
+
+  // Check if we're viewing an existing invoice
+  useEffect(() => {
+    if (id) {
+      // Try to load the invoice from localStorage
+      const savedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+      const existingInvoice = savedInvoices.find(inv => inv.invoiceNumber === id);
+      
+      if (existingInvoice) {
+        setInvoice(existingInvoice);
+        setReadOnly(true);
+        setCreated(true); // Show the view mode
+        
+        // If we have the totals from localStorage, use them
+        if (existingInvoice.calculatedTotals) {
+          setTotals(existingInvoice.calculatedTotals);
+        }
+      } else {
+        toast.error("Invoice not found");
+        navigate('/invoices');
+      }
+    } else if (location.state?.invoice) {
+      setInvoice(location.state.invoice);
+      setCreated(true);
+    }
+  }, [id, navigate, location]);
   
   // Update totals when line items change
   useEffect(() => {
@@ -308,19 +341,65 @@ const CreateInvoice = () => {
     window.scrollTo(0, 0);
   };
   
+  // Share invoice via WhatsApp
+  const shareViaWhatsApp = () => {
+    const text = `
+Hi ${invoice.client.name},
+
+Your invoice ${invoice.invoiceNumber} for ${invoice.projectDetails.name} has been created.
+
+Total Amount: $${totals.total.toFixed(2)}
+Due Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}
+
+Thank you for your business!
+    `;
+    
+    const encodedText = encodeURIComponent(text.trim());
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    toast.success('Invoice ready to share via WhatsApp');
+  };
+  
+  // Share invoice via Email
+  const shareViaEmail = () => {
+    const subject = `Invoice ${invoice.invoiceNumber} for ${invoice.projectDetails.name}`;
+    const body = `
+Hi ${invoice.client.name},
+
+Please find your invoice details below:
+
+Invoice: ${invoice.invoiceNumber}
+Project: ${invoice.projectDetails.name}
+Total Amount: $${totals.total.toFixed(2)}
+Due Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}
+
+Thank you for your business!
+    `;
+    
+    const mailtoLink = `mailto:${invoice.client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.trim())}`;
+    window.open(mailtoLink, '_blank');
+    toast.success('Invoice ready to share via Email');
+  };
+
   // Submit the invoice
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (validateStep()) {
-      // In a real app, you would send this to the server
-      console.log('Invoice submitted:', invoice);
+      // Save invoice to localStorage
+      const savedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
       
+      // Add calculated totals to the invoice for storage
+      const completeInvoice = {
+        ...invoice,
+        calculatedTotals: totals,
+        status: 'Pending', // Default status for new invoices
+        date: format(new Date(), 'yyyy-MM-dd')
+      };
+      
+      localStorage.setItem('invoices', JSON.stringify([...savedInvoices, completeInvoice]));
+      
+      setCreated(true);
       toast.success('Invoice created successfully!');
-      // Navigate back to invoices list
-      setTimeout(() => {
-        navigate('/invoices');
-      }, 1500);
     }
   };
   
@@ -328,7 +407,7 @@ const CreateInvoice = () => {
     <div className="container mx-auto max-w-5xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Create New Invoice</h1>
-        <p className="text-surface-500 dark:text-surface-400">
+        <p className="text-surface-500 dark:text-surface-400 hidden md:block">
           Create a professional invoice for your interior design project
         </p>
       </div>
@@ -378,7 +457,7 @@ const CreateInvoice = () => {
       </div>
       
       <form onSubmit={handleSubmit} className="card">
-        {/* Step 1: Client and Project Details */}
+        {!created && currentStep === 0 && (
         {currentStep === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -540,8 +619,7 @@ const CreateInvoice = () => {
           </motion.div>
         )}
         
-        {/* Step 2: Room Selection */}
-        {currentStep === 1 && (
+        {!created && currentStep === 1 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -639,8 +717,7 @@ const CreateInvoice = () => {
             </div>
           </motion.div>
         )}
-        
-        {/* Step 3: Items & Services */}
+        {!created && currentStep === 2 && (
         {currentStep === 2 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -805,8 +882,7 @@ const CreateInvoice = () => {
           </motion.div>
         )}
         
-        {/* Step 4: Review & Create */}
-        {currentStep === 3 && (
+        {!created && currentStep === 3 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -955,8 +1031,165 @@ const CreateInvoice = () => {
             </div>
           </motion.div>
         )}
+
+        {/* View Created Invoice */}
+        {created && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Invoice {invoice.invoiceNumber}</h2>
+              <span className="px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                Pending
+              </span>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6 mb-6">
+              <div className="md:w-1/2">
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Bill To:</h3>
+                  <p className="font-medium">{invoice.client.name}</p>
+                  <p>{invoice.client.email}</p>
+                  {invoice.client.phone && <p>{invoice.client.phone}</p>}
+                  {invoice.client.address && <p>{invoice.client.address}</p>}
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Project:</h3>
+                  <p className="font-medium">{invoice.projectDetails.name}</p>
+                  {invoice.projectDetails.address && <p>{invoice.projectDetails.address}</p>}
+                </div>
+              </div>
+              
+              <div className="md:w-1/2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Invoice Number:</h3>
+                    <p>{invoice.invoiceNumber}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Date Issued:</h3>
+                    <p>{format(new Date(invoice.issueDate), 'MMM d, yyyy')}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Due Date:</h3>
+                    <p>{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-surface-500 dark:text-surface-400 mb-1">Total Due:</h3>
+                    <p className="font-bold text-lg">${totals.total.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="font-medium mb-3">Invoice Items</h3>
+              <div className="overflow-x-auto border border-surface-200 dark:border-surface-700 rounded-lg">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-surface-50 dark:bg-surface-800">
+                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Room</th>
+                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
+                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Description</th>
+                      <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                      <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
+                      <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.lineItems.map((item) => (
+                      <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
+                        <td className="p-3">{item.roomName}</td>
+                        <td className="p-3">{item.name}</td>
+                        <td className="p-3 hidden md:table-cell">{item.description || '-'}</td>
+                        <td className="p-3 text-center">
+                          {item.measurement === 'custom quote' ? '-' : item.quantity}
+                          <span className="text-xs text-surface-500 ml-1">
+                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right">
+                          ${typeof item.rate === 'number' ? item.rate.toFixed(2) : item.rate}
+                          {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                            <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right font-medium">${typeof item.total === 'number' ? item.total.toFixed(2) : item.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+                      <td colSpan="4" className="p-3"></td>
+                      <td className="p-3 text-right font-medium">Subtotal</td>
+                      <td className="p-3 text-right">${totals.subtotal.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+                      <td colSpan="4" className="p-3"></td>
+                      <td className="p-3 text-right font-medium">Tax ({invoice.taxRate}%)</td>
+                      <td className="p-3 text-right">${totals.tax.toFixed(2)}</td>
+                    </tr>
+                    {invoice.discount > 0 && (
+                      <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+                        <td colSpan="4" className="p-3"></td>
+                        <td className="p-3 text-right font-medium">Discount ({invoice.discount}%)</td>
+                        <td className="p-3 text-right">-${totals.discount.toFixed(2)}</td>
+                      </tr>
+                    )}
+                    <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 font-bold">
+                      <td colSpan="4" className="p-3"></td>
+                      <td className="p-3 text-right">Total</td>
+                      <td className="p-3 text-right">${totals.total.toFixed(2)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {invoice.notes && (
+              <div className="mb-6">
+                <h3 className="font-medium mb-2">Notes & Terms</h3>
+                <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
+                  <p>{invoice.notes}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <button
+                type="button"
+                onClick={shareViaEmail}
+                className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              >
+                <MailIcon className="w-4 h-4 mr-2" />
+                Share via Email
+              </button>
+              
+              <button
+                type="button"
+                onClick={shareViaWhatsApp}
+                className="flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              >
+                <ShareIcon className="w-4 h-4 mr-2" />
+                Share via WhatsApp
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="flex items-center px-4 py-2 bg-surface-200 hover:bg-surface-300 dark:bg-surface-700 dark:hover:bg-surface-600 rounded-lg transition-colors"
+              >
+                <PrintIcon className="w-4 h-4 mr-2" />
+                Print Invoice
+              </button>
+            </div>
+          </motion.div>
+        )}
         
-        <div className="mt-8 flex justify-between">
+        <div className={`mt-8 flex justify-between ${created ? 'hidden' : ''}`}>
           {currentStep > 0 ? (
             <button
               type="button"

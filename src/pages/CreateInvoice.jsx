@@ -1040,7 +1040,6 @@ Thank you for your business!
                           <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                         </tr>
                       ))}
-                      ))}
                     </tbody>
                   </table>
                 </div>

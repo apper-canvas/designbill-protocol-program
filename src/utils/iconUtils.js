@@ -3,8 +3,8 @@ import * as LucideIcons from 'lucide-react';
 export const getIcon = (iconName) => {
   // Step 0: Handle null/undefined case
   if (!iconName) {
-    console.warn('No icon name provided, using FileText as fallback');
-    return LucideIcons.FileText;
+    console.warn('No icon name provided, using Moon as fallback');
+    return LucideIcons.Moon;
   }
 
   // Create a map for common naming variations
@@ -21,6 +21,8 @@ export const getIcon = (iconName) => {
     'heart': 'Heart',
     'twitter': 'Twitter',
     'instagram': 'Instagram',
+    'moon': 'Moon',
+    'sun': 'Sun',
     'facebook': 'Facebook',
     'file-plus': 'FilePlus',
     'user-plus': 'UserPlus',
@@ -88,6 +90,6 @@ export const getIcon = (iconName) => {
   }
 
   // Fallback to a more appropriate default icon with helpful warning
-  console.warn(`Icon "${iconName}" not found in Lucide (tried "${componentName}", "${capitalizedName}", and "${noSpaces}"). Using FileText as fallback.`);
-  return LucideIcons.FileText;
+  console.warn(`Icon "${iconName}" not found in Lucide (tried "${componentName}", "${capitalizedName}", and "${noSpaces}"). Using Moon as fallback.`);
+  return LucideIcons.Moon;
 };

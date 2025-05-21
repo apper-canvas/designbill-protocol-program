@@ -166,6 +166,7 @@ const RevenueChart = () => {
 
 // Recent invoices component
 const RecentInvoices = () => {
+  const FilterIcon = getIcon('filter');
   // Mock data for recent invoices
   const invoices = [
     {
@@ -214,7 +215,7 @@ const RecentInvoices = () => {
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-semibold">Recent Invoices</h3>
         <button className="btn btn-outline flex items-center text-sm">
-          {getIcon('filter')({ className: "w-4 h-4 mr-1" })}
+          <FilterIcon className="w-4 h-4 mr-1" />
           Filter
         </button>
       </div>

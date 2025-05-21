@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from "react-router-dom";
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { calculatePaymentStats, validateUpfrontPayment } from "../utils/paymentService";
@@ -56,10 +55,10 @@ const CreateInvoice = () => {
     client: {
       name: '',
       email: '',
-      phone: '',
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentHistory, setPaymentHistory] = useState([]);
-      address: ''
+    name: '',
+    address: '',
+    startDate: format(new Date(), 'yyyy-MM-dd'),
+    additionalInfo: ''
     },
     projectDetails: {
       name: '',
@@ -83,8 +82,6 @@ const CreateInvoice = () => {
   useEffect(() => {
     setPaymentStats(calculatePaymentStats(invoiceData.total, paymentHistory));
   }, [invoiceData.total, paymentHistory]);
-
-  });
   
   // Calculate totals
   const [totals, setTotals] = useState({
@@ -199,19 +196,6 @@ const CreateInvoice = () => {
   
   // Add a line item to the invoice
   const addLineItem = (roomId, item) => {
-  // Handle recording a payment
-  const handlePaymentRecorded = (payment) => {
-    setPaymentHistory(prev => [...prev, payment]);
-    
-    // Check if this is the first payment (upfront)
-    if (prev.length === 0) {
-      const isUpfrontValid = validateUpfrontPayment(parseFloat(payment.amount.replace(/[$,]/g, '')), invoiceData.total);
-      if (isUpfrontValid) {
-        toast.success("Upfront payment requirement met!");
-      }
-    }
-  };
-
     const room = invoice.rooms.find(r => r.id === roomId);
     const newItem = {
       id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -237,13 +221,26 @@ const CreateInvoice = () => {
   
   // Add a custom line item
   const addCustomLineItem = (roomId) => {
+    const room = invoice.rooms.find(r => r.id === roomId);
+    addLineItem(roomId);
+  };
+  
+  // Handle recording a payment
+  const handlePaymentRecorded = (payment) => {
+    setPaymentHistory(prev => [...prev, payment]);
+    
+    // Check if this is the first payment (upfront)
+    if (paymentHistory.length === 0) {
+      const isUpfrontValid = validateUpfrontPayment(parseFloat(payment.amount.replace(/[$,]/g, '')), totals.total);
+      if (isUpfrontValid) {
+        toast.success("Upfront payment requirement met!");
+      }
+    }
+  };
   
   // Open payment modal
   const openPaymentModal = () => {
     setShowPaymentModal(true);
-  };
-    const room = invoice.rooms.find(r => r.id === roomId);
-    addLineItem(roomId);
   };
   
   // Update a line item
@@ -325,46 +322,6 @@ const CreateInvoice = () => {
       }
       
       if (!invoice.client.email.trim()) {
-        clientErrors.email = 'Client email is required';
-        {/* Payment Tracker Section */}
-        {invoiceData.total > 0 && (
-          <div className="my-8">
-            <h3 className="text-xl font-semibold mb-4">Payment Tracking</h3>
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full md:w-2/3">
-                <PaymentTracker 
-                  totalAmount={invoiceData.total} 
-                  paidAmount={paymentStats.paidAmount}
-                  upfrontRequired={true}
-                  className="mb-4"
-                />
-                
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-medium">Payment History</h4>
-                  <button 
-                    onClick={openPaymentModal}
-                    className="btn btn-primary flex items-center"
-                  >
-                    <DollarSignIcon className="w-5 h-5 mr-2" />
-                    Record Payment
-                  </button>
-                </div>
-                
-                {paymentHistory.length === 0 ? (
-                  <div className="bg-surface-100 dark:bg-surface-800 p-4 rounded-lg text-center">
-                    <p className="text-surface-500 dark:text-surface-400">No payments recorded yet</p>
-                    <p className="text-sm text-surface-400 dark:text-surface-500 mt-1">
-                      Record the first payment to start tracking
-                    </p>
-                  </div>
-                ) : (
-                  // Payment history table will be rendered here
-                  <PaymentHistoryTable payments={paymentHistory} onDelete={(id) => setPaymentHistory(prev => prev.filter(p => p.id !== id))} />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         valid = false;
       } else if (!/^\S+@\S+\.\S+$/.test(invoice.client.email)) {
@@ -1035,12 +992,12 @@ Thank you for your business!
         )}
         
         {!created && currentStep === 3 && (
-          <motion.div
+         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-          >
+         >
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-4">Review Invoice</h2>
               
@@ -1090,84 +1047,73 @@ Thank you for your business!
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                       </tr>
                     </thead>
-                    <tbody>
+                      <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
                       {invoice.lineItems.map((item) => (
                         <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
                           <td className="p-3">{item.roomName}</td>
                           <td className="p-3">{item.name}</td>
                           <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
-                          <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
+                          {item.measurement === 'custom quote' ? '-' : item.quantity}
                           <td className="p-3 text-right">
                             {item.measurement === 'custom quote' ? '-' : item.quantity}
-                          </td>
-                          <td className="p-3 text-right">
-                            ${item.rate.toFixed(2)}
-                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
-                              <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
-                            )}
-                            <span className="text-xs text-surface-500 ml-1">
+                          ${item.rate.toFixed(2)}
+                          {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                            <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                          )}
+                          <span className="text-xs text-surface-500 ml-1">
+                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
+                          </span>
                               {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                             </span>
-                          </td>
+                      </tr>
                           <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
               
-      
-      {/* Payment Modal */}
-      <PaymentModal 
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        invoice={{
-          id: "INV-" + Date.now().toString().slice(-6),
-          invoiceNumber: invoiceData.invoiceNumber,
-          clientName: invoiceData.clientName,
-          total: invoiceData.total
-        }}
+              {/* Payment tracking section */}
+              {totals.total > 0 && (
+                <div className="my-8">
+                  <h3 className="text-xl font-semibold mb-4">Payment Tracking</h3>
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="w-full md:w-2/3">
+                      <PaymentTracker 
+                        totalAmount={totals.total} 
+                        paidAmount={paymentStats.paidAmount}
+                        upfrontRequired={true}
+                        className="mb-4"
+                      />
+                      
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-lg font-medium">Payment History</h4>
+                        <button 
+                          onClick={openPaymentModal}
+                          className="btn btn-primary flex items-center"
+                        >
+                          <DollarSignIcon className="w-5 h-5 mr-2" />
+                          Record Payment
+                        </button>
+                      </div>
+                      
+                      {paymentHistory.length === 0 ? (
+                        <div className="bg-surface-100 dark:bg-surface-800 p-4 rounded-lg text-center">
+                          <p className="text-surface-500 dark:text-surface-400">No payments recorded yet</p>
+                          <p className="text-sm text-surface-400 dark:text-surface-500 mt-1">
+                            Record the first payment to start tracking
+                          </p>
+                        </div>
+                      ) : (
+                        <PaymentHistoryTable payments={paymentHistory} onDelete={(id) => setPaymentHistory(prev => prev.filter(p => p.id !== id))} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+                </div>
         existingPayments={paymentHistory}
         onPaymentRecorded={handlePaymentRecorded}
       />
-              <div className="mb-6 flex flex-col md:flex-row gap-6">
-                <div className="md:w-1/2">
-                  <h3 className="font-medium mb-2">Notes & Terms</h3>
-
-// Payment History Table Component
-const PaymentHistoryTable = ({ payments, onDelete }) => {
-  return (
-    <div className="overflow-x-auto bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
-      <table className="w-full">
-        <thead className="bg-surface-100 dark:bg-surface-700">
-          <tr>
-            <th className="text-left p-3 text-sm font-medium">Date</th>
-            <th className="text-left p-3 text-sm font-medium">Amount</th>
-            <th className="text-left p-3 text-sm font-medium">Method</th>
-            <th className="text-right p-3 text-sm font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {payments.map((payment) => (
-            <tr key={payment.id} className="border-t border-surface-200 dark:border-surface-700">
-              <td className="p-3 text-sm">{payment.date}</td>
-              <td className="p-3 text-sm font-medium">{payment.amount}</td>
-              <td className="p-3 text-sm">{payment.method}</td>
-              <td className="p-3 text-right">
-                <button 
-                  onClick={() => onDelete(payment.id)}
-                  className="text-red-500 hover:text-red-700 text-xs font-medium"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 };
 
 export default CreateInvoice;
@@ -1398,6 +1344,22 @@ export default CreateInvoice;
           </motion.div>
         )}
         
+        {/* Payment Modal */}
+        {showPaymentModal && (
+          <PaymentModal 
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            invoice={{
+              id: "INV-" + Date.now().toString().slice(-6),
+              invoiceNumber: invoice.invoiceNumber,
+              clientName: invoice.client.name,
+              total: totals.total
+            }}
+            existingPayments={paymentHistory}
+            onPaymentRecorded={handlePaymentRecorded}
+          />
+        )}
+        
         <div className={`mt-8 flex justify-between ${created ? 'hidden' : ''}`}>
           {currentStep > 0 ? (
             <button
@@ -1439,6 +1401,36 @@ export default CreateInvoice;
           )}
         </div>
       </form>
+    </div>
+  );
+};
+
+// Payment History Table Component
+const PaymentHistoryTable = ({ payments, onDelete }) => {
+  return (
+    <div className="overflow-x-auto bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+      <table className="w-full">
+        <thead className="bg-surface-100 dark:bg-surface-700">
+          <tr>
+            <th className="text-left p-3 text-sm font-medium">Date</th>
+            <th className="text-left p-3 text-sm font-medium">Amount</th>
+            <th className="text-left p-3 text-sm font-medium">Method</th>
+            <th className="text-right p-3 text-sm font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payments.map((payment) => (
+            <tr key={payment.id} className="border-t border-surface-200 dark:border-surface-700">
+              <td className="p-3 text-sm">{payment.date}</td>
+              <td className="p-3 text-sm font-medium">{payment.amount}</td>
+              <td className="p-3 text-sm">{payment.method}</td>
+              <td className="p-3 text-right">
+                <button onClick={() => onDelete(payment.id)} className="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getIcon } from './utils/iconUtils';
@@ -7,6 +7,8 @@ import { getIcon } from './utils/iconUtils';
 // Pages
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
+import Dashboard from './pages/Dashboard';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Components
 const ThemeToggle = () => {
@@ -54,17 +56,33 @@ const ThemeToggle = () => {
   );
 };
 
+// Protected route component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
   const location = useLocation();
   
   return (
-    <div className="min-h-screen flex flex-col">
-      <ThemeToggle />
-      
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
+    <AuthProvider>
+      <div className="min-h-screen flex flex-col">
+        <ThemeToggle />
+        
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute><Dashboard /></ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+        </Routes>
         </Routes>
       </AnimatePresence>
       
@@ -81,7 +99,8 @@ function App() {
         theme="colored"
         className="z-50"
       />
-    </div>
+      </div>
+    </AuthProvider>
   );
 }
 

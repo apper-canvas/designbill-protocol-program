@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { calculatePaymentStats, validateUpfrontPayment } from "../utils/paymentService";
 import PaymentTracker from "../components/PaymentTracker";
@@ -71,8 +71,17 @@ const CreateInvoice = () => {
     taxRate: 5,
     discount: 0,
     notes: ''
-  // Calculate payment stats
+  });
+  
+  // Payment tracking states
   const [paymentStats, setPaymentStats] = useState({
+    paidAmount: 0,
+    percentPaid: 0,
+    remainingAmount: 0,
+    upfrontMet: false
+  });
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
     paidAmount: 0,
     percentPaid: 0,
     remainingAmount: 0,
@@ -80,7 +89,7 @@ const CreateInvoice = () => {
   });
 
   useEffect(() => {
-    setPaymentStats(calculatePaymentStats(invoiceData.total, paymentHistory));
+    upfrontMet: false
   }, [invoiceData.total, paymentHistory]);
   
   // Calculate totals
@@ -204,8 +213,6 @@ const CreateInvoice = () => {
       name: item ? item.name : '',
       dimensions: '', 
       units: 'inches',
-  const DollarSignIcon = getIcon("dollar-sign");
-      // description field removed as requested
       measurement: item ? item.defaultMeasurement : 'per unit',
       quantity: 1,
       rate: item ? item.defaultRate : 0,
@@ -1047,25 +1054,22 @@ Thank you for your business!
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                       </tr>
                     </thead>
-                      <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
+                    <tbody>
                       {invoice.lineItems.map((item) => (
                         <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
                           <td className="p-3">{item.roomName}</td>
                           <td className="p-3">{item.name}</td>
                           <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
-                          {item.measurement === 'custom quote' ? '-' : item.quantity}
+                          <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
                           <td className="p-3 text-right">
                             {item.measurement === 'custom quote' ? '-' : item.quantity}
-                          ${item.rate.toFixed(2)}
-                          {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
-                            <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
-                          )}
-                          <span className="text-xs text-surface-500 ml-1">
-                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
-                          </span>
-                              {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
-                            </span>
-                      </tr>
+                          </td>
+                          <td className="p-3 text-right">
+                            ${item.rate.toFixed(2)}
+                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                              <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                            )}
+                          </td>
                           <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                         </tr>
                       ))}
@@ -1110,11 +1114,15 @@ Thank you for your business!
                   </div>
                 </div>
               )}
-                </div>
-        existingPayments={paymentHistory}
-        onPaymentRecorded={handlePaymentRecorded}
-      />
-};
+              
+              <div className="mb-6">
+                <h3 className="font-medium mb-2">Notes</h3>
+                <div className="md:w-1/2">
+                  <h3 className="font-medium mb-2">Notes</h3>
+                  <textarea
+                    value={invoice.notes}
+                    onChange={(e) => handleGeneralChange('notes', e.target.value)}
+                    className="form-input"
 
 export default CreateInvoice;
                   <textarea

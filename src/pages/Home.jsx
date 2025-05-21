@@ -156,10 +156,10 @@ const Home = () => {
               <p className="text-surface-600 dark:text-surface-400">Maintain a list of your services and products with customizable rates and descriptions.</p>
             </motion.div>
             
-                className="btn btn-outline text-surface-800 dark:text-surface-100"
+            <motion.div className="card" variants={item}>
               <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                Login
-              </Link> 
+                <UsersIcon className="h-6 w-6 text-accent" />
+              </div>
               <h3 className="text-xl font-semibold mb-2">Client Management</h3>
               <p className="text-surface-600 dark:text-surface-400">Keep track of clients, projects, and communication history all in one place.</p>
             </motion.div>

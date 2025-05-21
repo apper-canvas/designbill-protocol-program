@@ -82,17 +82,17 @@ const roomItems = {
     },
     {
       id: 'b-wardrobe',
-      id: 'b-closet',
       name: 'Built-in Closet System',
+      defaultMeasurement: 'per sq ft',
       defaultRate: 65,
       pricingOptions: ['per sq ft', 'custom quote']
     },
     {
       id: 'b-side-table',
       name: 'Side Table',
+      defaultMeasurement: 'per unit',
       name: 'Bedside Table',
       defaultRate: 180,
-      pricingOptions: ['per unit', 'custom quote']
     }
     },
     {
@@ -194,8 +194,8 @@ const roomItems = {
       defaultRate: 22,
       pricingOptions: ['per sq ft', 'custom quote']
     }
-    }
   ],
+  
   'living-room': [
     {
       id: 'lr-sofa',
@@ -325,8 +325,8 @@ const roomItems = {
       defaultRate: 2200,
       pricingOptions: ['per unit', 'custom quote']
     }
-    }
   ],
+  
   'dining-room': [
     {
       id: 'dr-table',
@@ -377,8 +377,8 @@ const roomItems = {
       defaultRate: 14,
       pricingOptions: ['per sq ft', 'custom quote']
     }
-    }
   ],
+  
   'office': [
     {
       id: 'o-desk',
@@ -428,7 +428,6 @@ const roomItems = {
       defaultMeasurement: 'per sq ft',
       defaultRate: 65,
       pricingOptions: ['per sq ft', 'custom quote']
-    }
     }
   ]
 };

@@ -114,7 +114,7 @@ const Home = () => {
             >
               Get Started 
               <ChevronRightIcon className="ml-2 h-5 w-5" />
-            </button>
+                <Link to="/signup" className="btn btn-outline text-black dark:text-black ml-4">
             
             <button 
               className="bg-white/10 hover:bg-white/20 border border-white/20 text-white 

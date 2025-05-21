@@ -789,7 +789,8 @@ Thank you for your business!
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Dimensions</th>
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Units</th>
-                              <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                              <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                              <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                               <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Actions</th>
                             </tr>
@@ -848,7 +849,7 @@ Thank you for your business!
                                     type="number"
                                     value={item.quantity}
                                     onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                    className="form-input text-sm py-1 text-center w-20"
+                                    className="form-input text-sm py-1 text-right w-20"
                                     min="0"
                                     step="1"
                                     disabled={item.measurement === 'custom quote'}
@@ -868,6 +869,9 @@ Thank you for your business!
                                       step="0.01"
                                     />
                                   </div>
+                                </td>
+                                <td className="py-2 text-right">
+                                  ${(item.rate * item.quantity).toFixed(2)}
                                 </td>
                                 <td className="py-2 text-center">
                                   <button
@@ -946,7 +950,8 @@ Thank you for your business!
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Units</th>
-                        <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                        <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                        <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                       </tr>
                     </thead>
@@ -957,8 +962,14 @@ Thank you for your business!
                           <td className="p-3">{item.name}</td>
                           <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
                           <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
-                          <td className="p-3 text-center">
+                          <td className="p-3 text-right">
                             <span className="text-xs text-surface-500 ml-1">
+                          </td>
+                          <td className="p-3 text-right">
+                            ${item.rate.toFixed(2)}
+                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                              <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                            )}
                               {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                             </span>
                           </td>
@@ -1108,7 +1119,8 @@ Thank you for your business!
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Units</th>
-                      <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                      <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
+                      <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                       <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                     </tr>
                   </thead>
@@ -1119,36 +1131,42 @@ Thank you for your business!
                         <td className="p-3">{item.name}</td>
                         <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
                         <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
-                        <td className="p-3 text-center">
+                        <td className="p-3 text-right">
                           {item.measurement === 'custom quote' ? '-' : item.quantity}
+                        </td>
+                        <td className="p-3 text-right">
+                          ${item.rate.toFixed(2)}
+                          {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                            <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                          )}
                           <span className="text-xs text-surface-500 ml-1">
                             {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                           </span>
                         </td>
-                        <td className="p-3 text-right font-medium">${typeof item.total === 'number' ? item.total.toFixed(2) : item.total}</td>
+                        <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                      <td colSpan="4" className="p-3"></td>
+                      <td colSpan="5" className="p-3"></td>
                       <td className="p-3 text-right font-medium">Subtotal</td>
                       <td className="p-3 text-right">${totals.subtotal.toFixed(2)}</td>
                     </tr>
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                      <td colSpan="4" className="p-3"></td>
+                      <td colSpan="5" className="p-3"></td>
                       <td className="p-3 text-right font-medium">Tax ({invoice.taxRate}%)</td>
                       <td className="p-3 text-right">${totals.tax.toFixed(2)}</td>
                     </tr>
                     {invoice.discount > 0 && (
                       <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                        <td colSpan="4" className="p-3"></td>
+                        <td colSpan="5" className="p-3"></td>
                         <td className="p-3 text-right font-medium">Discount ({invoice.discount}%)</td>
                         <td className="p-3 text-right">-${totals.discount.toFixed(2)}</td>
                       </tr>
                     )}
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 font-bold">
-                      <td colSpan="4" className="p-3"></td>
+                      <td colSpan="5" className="p-3"></td>
                       <td className="p-3 text-right">Total</td>
                       <td className="p-3 text-right">${totals.total.toFixed(2)}</td>
                     </tr>

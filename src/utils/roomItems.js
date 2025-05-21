@@ -267,7 +267,6 @@ const roomItems = {
       defaultRate: 16,
       pricingOptions: ['per sq ft', 'custom quote']
     }
-    }
   ],
   'bathroom': [
     {

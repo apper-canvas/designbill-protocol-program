@@ -116,6 +116,7 @@ function App() {
               <Route path="clients" element={<Clients />} />
               <Route path="payments" element={<Payments />} />
               <Route path="settings" element={<Settings />} />
+             <Route path="invoices/create" element={<CreateInvoice />} />
               <Route path="create-invoice" element={<CreateInvoice />} />
             </Route>
             <Route path="*" element={<NotFound />} />

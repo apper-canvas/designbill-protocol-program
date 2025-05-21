@@ -158,7 +158,9 @@ const Home = () => {
             
             <motion.div className="card" variants={item}>
               <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                <UsersIcon className="h-6 w-6 text-accent" />
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  Login
+                </motion.div>
               </div>
               <h3 className="text-xl font-semibold mb-2">Client Management</h3>
               <p className="text-surface-600 dark:text-surface-400">Keep track of clients, projects, and communication history all in one place.</p>

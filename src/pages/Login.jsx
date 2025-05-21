@@ -136,6 +136,9 @@ const Login = () => {
           <p className="mt-6 text-center text-sm text-surface-600 dark:text-surface-400">
             Don't have an account? <Link to="/signup" className="font-medium text-primary hover:text-primary-dark">Sign up</Link>
           </p>
+          <p className="mt-4 text-center text-sm text-surface-600 dark:text-surface-400">
+            <Link to="/" className="font-medium text-primary hover:text-primary-dark">Back to Homepage</Link>
+          </p>
         </div>
       </div>
     </motion.div>

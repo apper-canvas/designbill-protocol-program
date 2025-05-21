@@ -112,8 +112,8 @@ const Payments = () => {
   const [selectedInvoice, setSelectedInvoice] = useState({
     invoiceId: null,
     showDetails: false
-    }
-  ]);
+  });
+  
 
   // Get icons
   const PlusIcon = getIcon('plus');
@@ -229,8 +229,6 @@ const Payments = () => {
             />
           </div>
           <div className="relative">
-              className="form-input pl-10"
-            />
           </div>
           <button onClick={recordPayment} className="btn btn-primary flex items-center">
             <DollarSignIcon className="w-5 h-5 mr-2" />

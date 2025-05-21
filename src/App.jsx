@@ -14,6 +14,7 @@ import Invoices from './pages/Invoices';
 import Clients from './pages/Clients';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
+import CreateInvoice from './pages/CreateInvoice';
 import AppLayout from './components/AppLayout';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';

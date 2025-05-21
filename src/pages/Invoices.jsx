@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getIcon } from '../utils/iconUtils';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 
@@ -58,6 +59,7 @@ const Invoices = () => {
   ]);
 
   const [filter, setFilter] = useState('all');
+  const navigate = useNavigate();
 
   // Get icons
   const PlusIcon = getIcon('plus');
@@ -95,7 +97,7 @@ const Invoices = () => {
               className="form-input pl-10"
             />
           </div>
-          <button className="btn btn-primary flex items-center">
+          <button className="btn btn-primary flex items-center" onClick={() => navigate('/invoices/create')}>
             <PlusIcon className="w-5 h-5 mr-2" />
             New Invoice
           </button>

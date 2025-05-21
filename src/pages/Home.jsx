@@ -339,6 +339,7 @@ const Home = () => {
           </div>
         </div>
       </footer>
+    </motion.div>
   );
 };
 

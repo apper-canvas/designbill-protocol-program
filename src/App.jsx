@@ -83,8 +83,7 @@ function App() {
             } />
             <Route path="*" element={<NotFound />} />
         </Routes>
-        </Routes>
-      </AnimatePresence>
+        </AnimatePresence>
       
       <ToastContainer
         position="bottom-right"

@@ -87,7 +87,7 @@ const Home = () => {
                 <ReceiptIcon className="h-6 w-6" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold">DesignBill</h1>
-            </div>
+                <Link to="/signup" className="ml-6 btn bg-white border-2 border-primary-light text-black transition-colors">
             <div className="flex items-center space-x-6">
               <a 
                 href="/login" 

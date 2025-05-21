@@ -458,7 +458,6 @@ Thank you for your business!
       
       <form onSubmit={handleSubmit} className="card">
         {!created && currentStep === 0 && (
-        {currentStep === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -718,7 +717,6 @@ Thank you for your business!
           </motion.div>
         )}
         {!created && currentStep === 2 && (
-        {currentStep === 2 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

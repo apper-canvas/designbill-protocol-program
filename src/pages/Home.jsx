@@ -162,9 +162,6 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Client Management</h3>
               <p className="text-surface-600 dark:text-surface-400">Keep track of clients, projects, and communication history all in one place.</p>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Client Management</h3>
-              <p className="text-surface-600 dark:text-surface-400">Keep track of clients, projects, and communication history all in one place.</p>
             </motion.div>
             
             <motion.div className="card" variants={item}>

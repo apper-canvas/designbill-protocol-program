@@ -124,7 +124,6 @@ const Home = () => {
             </button>
           </div>
           </div>
-        </div>
       </header>
       
       {/* Features overview */}

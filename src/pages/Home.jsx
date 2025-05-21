@@ -87,17 +87,14 @@ const Home = () => {
                 <ReceiptIcon className="h-6 w-6" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold">DesignBill</h1>
-                <Link to="/signup" className="ml-6 btn bg-white border-2 border-primary-light text-black transition-colors">
+            </div>
             <div className="flex items-center space-x-6">
               <a 
                 href="/login" 
                 className="text-white hover:text-white font-medium transition-all">Login</a>
-              <a 
-                href="/signup"
-                className="bg-white text-black hover:bg-white/90 font-medium px-4 py-2 rounded-lg transition-all font-semibold"
-              >
-                Sign Up
-              </a>
+              <Link to="/signup" 
+                className="bg-white text-black hover:bg-white/90 font-medium px-4 py-2 rounded-lg transition-all font-semibold">
+                Sign Up</Link>
             </div>
           </div>
           
@@ -123,7 +120,7 @@ const Home = () => {
               try demo
             </button>
           </div>
-          </div>
+        </div>
       </header>
       
       {/* Features overview */}

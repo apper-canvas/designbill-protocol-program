@@ -267,17 +267,12 @@ const RecentInvoices = () => {
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
   
-  return (
-    <div className="min-h-screen bg-surface-100 dark:bg-surface-900">
-      <header className="bg-white dark:bg-surface-800 shadow-sm border-b border-surface-200 dark:border-surface-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary dark:text-primary-light">DesignBill</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium">Welcome, {currentUser?.name || 'User'}</span>
-            <button onClick={logout} className="btn btn-outline text-sm py-1">Logout</button>
-          </div>
-        </div>
-      </header>
+        <h2 className="text-2xl font-bold">Dashboard</h2>
+        <button className="btn btn-primary">Create New Invoice</button>
+      </div>
+      
+      <div>
+        {/* Dashboard content */}
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -286,7 +281,7 @@ const Dashboard = () => {
         </div>
         
         <DashboardStats />
-        <RevenueChart />
+export default Dashboard;
         <RecentInvoices />
       </main>
     </div>

@@ -10,6 +10,12 @@ import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Invoices from './pages/Invoices';
+import Clients from './pages/Clients';
+import Payments from './pages/Payments';
+import Settings from './pages/Settings';
+import AppLayout from './components/AppLayout';
+
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Components
@@ -101,8 +107,16 @@ function App() {
             <Route path="/signup" element={
               <PublicOnlyRoute><Signup /></PublicOnlyRoute>
             } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute><Dashboard /></ProtectedRoute>
+            <Route path="/" element={
+              <ProtectedRoute><AppLayout /></ProtectedRoute>
+            }>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="invoices" element={<Invoices />} />
+              <Route path="clients" element={<Clients />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
             } />
             <Route path="*" element={<NotFound />} />
         </Routes>

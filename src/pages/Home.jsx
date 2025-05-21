@@ -92,7 +92,7 @@ const Home = () => {
                 href="/login" 
                 className="text-white/90 hover:text-white font-medium transition-all btn btn-outline text-surface-800 dark:text-surface-100 ml-4"
               >
-                Login
+                <Link to="/login" className="btn btn-outline text-white ml-4">Login</Link>
               </a>
               <a 
                 href="/signup"

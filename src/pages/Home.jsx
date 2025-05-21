@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 import MainFeature from '../components/MainFeature';
@@ -89,11 +90,8 @@ const Home = () => {
             </div>
             <div className="flex items-center space-x-6">
               <a 
-                href="/login" 
-                className="text-white/90 hover:text-white font-medium transition-all btn btn-outline text-surface-800 dark:text-surface-100 ml-4"
-              >
-                <Link to="/login" className="btn btn-outline text-white ml-4">Login</Link>
-              </a>
+                href="/login"
+                className="text-white/90 hover:text-white font-medium transition-all">Login</a>
               <a 
                 href="/signup"
                 className="bg-white text-primary-dark hover:bg-white/90 font-medium px-4 py-2 rounded-lg transition-all font-semibold"

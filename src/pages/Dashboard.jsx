@@ -74,7 +74,8 @@ const DashboardStats = () => {
 
 // Revenue chart component
 const RevenueChart = () => {
-  const chartOptions = {
+  const [mounted, setMounted] = useState(false);
+  const [chartOptions] = useState({
     chart: {
       type: 'area',
       toolbar: {
@@ -111,7 +112,7 @@ const RevenueChart = () => {
     },
     yaxis: {
       labels: {
-        formatter: function(value) {
+        formatter: function(value = 0) {
           return '$' + value.toLocaleString();
         },
         style: {
@@ -122,18 +123,24 @@ const RevenueChart = () => {
     tooltip: {
       theme: 'light',
       y: {
-        formatter: function(value) {
+        formatter: function(value = 0) {
           return '$' + value.toLocaleString();
         }
       }
     },
     colors: ['#4A6FA5', '#F28C60']
-  };
+  });
 
   const chartSeries = [{
     name: 'Revenue',
     data: [2100, 3200, 2800, 5100, 4300, 6200, 7800, 7100, 8400]
   }];
+  
+  // Set mounted state to true after component mounts
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   return (
     <div className="card mb-8">
@@ -145,12 +152,14 @@ const RevenueChart = () => {
           <option>Last Year</option>
         </select>
       </div>
-      <Chart
-        options={chartOptions}
-        series={chartSeries}
-        type="area"
-        height={350}
-      />
+      {mounted && (
+        <Chart
+          options={chartOptions}
+          series={chartSeries}
+          type="area"
+          height={350}
+        />
+      )}
     </div>
   );
 };

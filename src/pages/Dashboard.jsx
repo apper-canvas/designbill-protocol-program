@@ -266,14 +266,9 @@ const RecentInvoices = () => {
 // Main Dashboard component
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
-  
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <button className="btn btn-primary">Create New Invoice</button>
-      </div>
-      
-      <div>
-        {/* Dashboard content */}
-      
+
+  return (
+    <div>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold">Dashboard</h2>
@@ -281,7 +276,7 @@ const Dashboard = () => {
         </div>
         
         <DashboardStats />
-export default Dashboard;
+        <RevenueChart />
         <RecentInvoices />
       </main>
     </div>

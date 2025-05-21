@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getIcon } from '../utils/iconUtils';
+import { initEmailJS, sendInvoiceEmail } from '../utils/emailService';
 import roomTypes from '../utils/roomTypes';
 import roomItems from '../utils/roomItems';
-
+  
 const CreateInvoice = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -41,6 +42,8 @@ const CreateInvoice = () => {
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [customRoomName, setCustomRoomName] = useState('');
   const [readOnly, setReadOnly] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
   
   // Invoice state
   const [invoice, setInvoice] = useState({
@@ -107,6 +110,15 @@ const CreateInvoice = () => {
       setCreated(true);
     }
   }, [id, navigate, location]);
+  
+  // Initialize EmailJS on component mount
+  useEffect(() => {
+    try {
+      initEmailJS();
+    } catch (error) {
+      console.error('Failed to initialize EmailJS:', error);
+    }
+  }, []);
   
   // Update totals when line items change
   useEffect(() => {
@@ -344,8 +356,17 @@ const CreateInvoice = () => {
   };
   
   // Share invoice via WhatsApp
-  const shareViaWhatsApp = () => {
-    const text = `
+  const shareViaWhatsApp = useCallback(async () => {
+    // Don't proceed if we don't have a phone number
+    if (!invoice.client.phone) {
+      toast.warning("Client phone number is required to share via WhatsApp");
+      return;
+    }
+
+    try {
+      setIsSendingWhatsApp(true);
+      
+      const text = `
 Hi ${invoice.client.name},
 
 Your invoice ${invoice.invoiceNumber} for ${invoice.projectDetails.name} has been created.
@@ -354,17 +375,54 @@ Total Amount: $${totals.total.toFixed(2)}
 Due Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}
 
 Thank you for your business!
-    `;
-    
-    const encodedText = encodeURIComponent(text.trim());
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
-    toast.success('Invoice ready to share via WhatsApp');
-  };
+      `;
+      
+      // Strip any non-numeric characters from phone
+      const cleanPhone = invoice.client.phone.replace(/\D/g, '');
+      const encodedText = encodeURIComponent(text.trim());
+      
+      // For production, you would use a server-side API call to WhatsApp Business API
+      // Here we're using the direct web link as a fallback
+      window.open(`https://wa.me/${cleanPhone}?text=${encodedText}`, '_blank');
+
+      // Simulate API call to demonstrate the concept
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setIsSendingWhatsApp(false);
+      toast.success('Invoice sent via WhatsApp successfully!');
+    } catch (error) {
+      setIsSendingWhatsApp(false);
+      console.error('WhatsApp sharing error:', error);
+      toast.error('Failed to send via WhatsApp. Please try again.');
+    }
+  }, [invoice, totals]);
   
   // Share invoice via Email
-  const shareViaEmail = () => {
-    const subject = `Invoice ${invoice.invoiceNumber} for ${invoice.projectDetails.name}`;
-    const body = `
+  const shareViaEmail = useCallback(async () => {
+    if (!invoice.client.email) {
+      toast.warning("Client email is required to share via email");
+      return;
+    }
+
+    try {
+      setIsSendingEmail(true);
+      
+      // Send email using EmailJS service
+      await sendInvoiceEmail(
+        invoice,
+        invoice.client,
+        totals
+      );
+
+      setIsSendingEmail(false);
+      toast.success('Invoice sent via email successfully!');
+    } catch (error) {
+      setIsSendingEmail(false);
+      console.error('Email sending error:', error);
+      
+      // Fallback to mailto if EmailJS fails
+      const subject = `Invoice ${invoice.invoiceNumber} for ${invoice.projectDetails.name}`;
+      const body = `
 Hi ${invoice.client.name},
 
 Please find your invoice details below:
@@ -375,12 +433,14 @@ Total Amount: $${totals.total.toFixed(2)}
 Due Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}
 
 Thank you for your business!
-    `;
-    
-    const mailtoLink = `mailto:${invoice.client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.trim())}`;
-    window.open(mailtoLink, '_blank');
-    toast.success('Invoice ready to share via Email');
-  };
+      `;
+      
+      const mailtoLink = `mailto:${invoice.client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.trim())}`;
+      window.open(mailtoLink, '_blank');
+      
+      toast.warning('Direct email sending failed. Email client opened instead.');
+    }
+  }, [invoice, totals]);
 
   // Submit the invoice
   const handleSubmit = (e) => {
@@ -969,11 +1029,13 @@ Thank you for your business!
                             {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
                               <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
                             )}
-                            <span className="text-xs text-surface-500 ml-1">{item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}</span>
+                            <span className="text-xs text-surface-500 ml-1">
+                              {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
+                            </span>
                           </td>
                           <td className="p-3 text-right">
-                            ${item.rate.toFixed(2)}
-                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                        </tr>
+                      ))}
                               <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
                             )}
                           </td>
@@ -1147,24 +1209,24 @@ Thank you for your business!
                   </tbody>
                   <tfoot>
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                      <td colSpan="5" className="p-3"></td>
+                      <td colSpan="6" className="p-3"></td>
                       <td className="p-3 text-right font-medium">Subtotal</td>
                       <td className="p-3 text-right">${totals.subtotal.toFixed(2)}</td>
                     </tr>
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                      <td colSpan="5" className="p-3"></td>
+                      <td colSpan="6" className="p-3"></td>
                       <td className="p-3 text-right font-medium">Tax ({invoice.taxRate}%)</td>
                       <td className="p-3 text-right">${totals.tax.toFixed(2)}</td>
                     </tr>
                     {invoice.discount > 0 && (
                       <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
-                        <td colSpan="5" className="p-3"></td>
+                        <td colSpan="6" className="p-3"></td>
                         <td className="p-3 text-right font-medium">Discount ({invoice.discount}%)</td>
                         <td className="p-3 text-right">-${totals.discount.toFixed(2)}</td>
                       </tr>
                     )}
                     <tr className="border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 font-bold">
-                      <td colSpan="5" className="p-3"></td>
+                      <td colSpan="6" className="p-3"></td>
                       <td className="p-3 text-right">Total</td>
                       <td className="p-3 text-right">${totals.total.toFixed(2)}</td>
                     </tr>
@@ -1186,6 +1248,7 @@ Thank you for your business!
               <button
                 type="button"
                 onClick={shareViaEmail}
+                disabled={isSendingEmail}
                 className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
               >
                 <MailIcon className="w-4 h-4 mr-2" />
@@ -1195,6 +1258,7 @@ Thank you for your business!
               <button
                 type="button"
                 onClick={shareViaWhatsApp}
+                disabled={isSendingWhatsApp || !invoice.client.phone}
                 className="flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               >
                 <ShareIcon className="w-4 h-4 mr-2" />

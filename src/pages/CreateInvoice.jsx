@@ -55,7 +55,6 @@ const CreateInvoice = () => {
     client: {
       name: '',
       email: '',
-    name: '',
     address: '',
     startDate: format(new Date(), 'yyyy-MM-dd'),
     additionalInfo: ''
@@ -82,15 +81,6 @@ const CreateInvoice = () => {
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-    paidAmount: 0,
-    percentPaid: 0,
-    remainingAmount: 0,
-    upfrontMet: false
-  });
-
-  useEffect(() => {
-    upfrontMet: false
-  }, [invoiceData.total, paymentHistory]);
   
   // Calculate totals
   const [totals, setTotals] = useState({
@@ -157,6 +147,15 @@ const CreateInvoice = () => {
       total
     });
   }, [invoice.lineItems, invoice.taxRate, invoice.discount]);
+
+  // Update payment statistics when totals or payment history changes
+  useEffect(() => {
+    const stats = calculatePaymentStats(totals.total, paymentHistory);
+    setPaymentStats({
+      ...stats,
+      upfrontMet: validateUpfrontPayment(stats.paidAmount, totals.total)
+    });
+  }, [totals.total, paymentHistory]);
   
   // Add a room to the invoice
   const addRoom = (roomType) => {
@@ -508,7 +507,7 @@ Thank you for your business!
   return (
     <div className="container mx-auto max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Create New Invoice</h1>
+        <h1 className="text-2xl font-bold mb-2">{id ? 'View Invoice' : 'Create New Invoice'}</h1>
         <p className="text-surface-500 dark:text-surface-400 hidden md:block">
           Create a professional invoice for your interior design project
         </p>
@@ -1074,7 +1073,9 @@ Thank you for your business!
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                </table>
+              </div>
+            </div>
               
               {/* Payment tracking section */}
               {totals.total > 0 && (
@@ -1095,7 +1096,7 @@ Thank you for your business!
                           onClick={openPaymentModal}
                           className="btn btn-primary flex items-center"
                         >
-                          <DollarSignIcon className="w-5 h-5 mr-2" />
+                          <DollarIcon className="w-5 h-5 mr-2" />
                           Record Payment
                         </button>
                       </div>
@@ -1115,20 +1116,13 @@ Thank you for your business!
                 </div>
               )}
               
-              <div className="mb-6">
+            <div className="mb-6 flex flex-col md:flex-row gap-6">
+              <div className="md:w-1/2">
                 <h3 className="font-medium mb-2">Notes</h3>
-                <div className="md:w-1/2">
-                  <h3 className="font-medium mb-2">Notes</h3>
-                  <textarea
-                    value={invoice.notes}
-                    onChange={(e) => handleGeneralChange('notes', e.target.value)}
-                    className="form-input"
-
-export default CreateInvoice;
-                  <textarea
-                    value={invoice.notes}
-                    onChange={(e) => handleGeneralChange('notes', e.target.value)}
-                    className="form-input"
+                <textarea
+                  value={invoice.notes}
+                  onChange={(e) => handleGeneralChange('notes', e.target.value)}
+                  className="form-input"
                     rows="4"
                     placeholder="Add any notes or terms & conditions"
                   ></textarea>
@@ -1186,6 +1180,7 @@ export default CreateInvoice;
                     </div>
                   </div>
                 </div>
+            
               </div>
             </div>
           </motion.div>

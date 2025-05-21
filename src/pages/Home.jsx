@@ -322,21 +322,15 @@ const Home = () => {
             <div className="flex space-x-4">
               <a href="#" className="text-white/50 hover:text-white transition-colors">
                 <span className="sr-only">Twitter</span>
-                {getIcon('twitter')({ className: "h-5 w-5" })}
-              </a>
-              <a href="#" className="text-white/50 hover:text-white transition-colors">
-                <span className="sr-only">Instagram</span>
+                <TwitterIcon className="h-5 w-5" />
                 {getIcon('instagram')({ className: "h-5 w-5" })}
               </a>
               <a href="#" className="text-white/50 hover:text-white transition-colors">
-                <span className="sr-only">Facebook</span>
-                {getIcon('facebook')({ className: "h-5 w-5" })}
-              </a>
-            </div>
+                <InstagramIcon className="h-5 w-5" />
           </div>
         </div>
       </footer>
-    </motion.div>
+                <FacebookIcon className="h-5 w-5" />
   );
 };
 

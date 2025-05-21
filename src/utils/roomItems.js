@@ -94,7 +94,7 @@ const roomItems = {
       defaultMeasurement: 'per unit',
       pricingOptions: ['per unit', 'custom quote']
     }
-    {
+    ,{
       id: 'b-dresser',
       name: 'Dresser',
       defaultMeasurement: 'per unit',

@@ -1033,10 +1033,6 @@ Thank you for your business!
                               {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                             </span>
                           </td>
-                          <td className="p-3 text-right">
-                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
-                              <span className="text-xs text-surface-500 ml-1">/{item.measurement.replace('per ', '')}</span>
-                            )}
                           <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                         </tr>
                       ))}

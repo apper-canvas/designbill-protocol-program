@@ -176,7 +176,9 @@ const CreateInvoice = () => {
       roomId,
       roomName: room.name,
       name: item ? item.name : '',
-      description: '',
+      dimensions: '',
+      squareFootage: '',
+      // description field removed as requested
       measurement: item ? item.defaultMeasurement : 'per unit',
       quantity: 1,
       rate: item ? item.defaultRate : 0,
@@ -785,8 +787,9 @@ Thank you for your business!
                           <thead>
                             <tr className="border-b border-surface-200 dark:border-surface-700">
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
-                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Description</th>
-                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Measurement</th>
+                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Dimensions</th>
+                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Square Footage</th>
+                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Measurement</th> 
                               <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
@@ -806,10 +809,19 @@ Thank you for your business!
                                   />
                                 </td>
                                 <td className="py-2">
-                                  <input
-                                    type="text"
-                                    value={item.description}
-                                    onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
+                                  <input 
+                                    type="text" 
+                                    value={item.dimensions} 
+                                    onChange={(e) => updateLineItem(item.id, 'dimensions', e.target.value)} 
+                                    className="form-input text-sm py-1" 
+                                    placeholder="e.g. 60\" x 80\"" 
+                                  />
+                                </td>
+                                <td className="py-2">
+                                  <input 
+                                    type="text" 
+                                    value={item.squareFootage} 
+                                    onChange={(e) => updateLineItem(item.id, 'squareFootage', e.target.value)} 
                                     className="form-input text-sm py-1"
                                     placeholder="Description"
                                   />
@@ -929,7 +941,8 @@ Thank you for your business!
                       <tr className="bg-surface-50 dark:bg-surface-800">
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Room</th>
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
-                        <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Description</th>
+                        <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
+                        <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Square Footage</th>
                         <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
@@ -940,7 +953,8 @@ Thank you for your business!
                         <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
                           <td className="p-3">{item.roomName}</td>
                           <td className="p-3">{item.name}</td>
-                          <td className="p-3 hidden md:table-cell">{item.description || '-'}</td>
+                          <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
+                          <td className="p-3 hidden md:table-cell">{item.squareFootage || '-'}</td>
                           <td className="p-3 text-center">
                             {item.measurement === 'custom quote' ? '-' : item.quantity}
                             <span className="text-xs text-surface-500 ml-1">
@@ -1091,7 +1105,8 @@ Thank you for your business!
                     <tr className="bg-surface-50 dark:bg-surface-800">
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Room</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
-                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Description</th>
+                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
+                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Square Footage</th>
                       <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                       <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                       <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
@@ -1102,7 +1117,8 @@ Thank you for your business!
                       <tr key={item.id} className="border-t border-surface-200 dark:border-surface-700">
                         <td className="p-3">{item.roomName}</td>
                         <td className="p-3">{item.name}</td>
-                        <td className="p-3 hidden md:table-cell">{item.description || '-'}</td>
+                        <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
+                        <td className="p-3 hidden md:table-cell">{item.squareFootage || '-'}</td>
                         <td className="p-3 text-center">
                           {item.measurement === 'custom quote' ? '-' : item.quantity}
                           <span className="text-xs text-surface-500 ml-1">

@@ -1034,13 +1034,12 @@ Thank you for your business!
                             </span>
                           </td>
                           <td className="p-3 text-right">
-                        </tr>
-                      ))}
-                              <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
+                            {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
+                              <span className="text-xs text-surface-500 ml-1">/{item.measurement.replace('per ', '')}</span>
                             )}
-                          </td>
                           <td className="p-3 text-right font-medium">${item.total.toFixed(2)}</td>
                         </tr>
+                      ))}
                       ))}
                     </tbody>
                   </table>

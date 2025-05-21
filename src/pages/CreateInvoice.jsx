@@ -789,10 +789,8 @@ Thank you for your business!
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Dimensions</th>
                               <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Units</th>
-                              <th className="text-left py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Measurement</th> 
                               <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                               <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
-                              <th className="text-right py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                               <th className="text-center py-2 text-xs font-medium text-surface-500 dark:text-surface-400">Actions</th>
                             </tr>
                           </thead>
@@ -814,7 +812,7 @@ Thank you for your business!
                                     value={item.dimensions} 
                                     onChange={(e) => updateLineItem(item.id, 'dimensions', e.target.value)} 
                                     className="form-input text-sm py-1" 
-                                    placeholder="e.g. 60&quot; x 80&quot;"
+                                    placeholder="e.g. 60\" x 80\""
                                   />
                                 </td>
                                 <td className="py-2">
@@ -835,8 +833,6 @@ Thank you for your business!
                                     <option value="ru m">running meters</option>
                                     <option value="custom">custom</option>
                                   </select>
-                                </td>
-                                <td className="py-2">
                                   <select
                                     value={item.measurement}
                                     onChange={(e) => updateLineItem(item.id, 'measurement', e.target.value)}
@@ -872,9 +868,6 @@ Thank you for your business!
                                       step="0.01"
                                     />
                                   </div>
-                                </td>
-                                <td className="py-2 text-right font-medium">
-                                  ${item.total.toFixed(2)}
                                 </td>
                                 <td className="py-2 text-center">
                                   <button
@@ -954,7 +947,6 @@ Thank you for your business!
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
                         <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Units</th>
                         <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
-                        <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
                         <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                       </tr>
                     </thead>
@@ -966,7 +958,6 @@ Thank you for your business!
                           <td className="p-3 hidden md:table-cell">{item.dimensions || '-'}</td>
                           <td className="p-3 hidden md:table-cell">{item.units || 'inches'}</td>
                           <td className="p-3 text-center">
-                            {item.measurement === 'custom quote' ? '-' : item.quantity}
                             <span className="text-xs text-surface-500 ml-1">
                               {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                             </span>
@@ -1116,9 +1107,8 @@ Thank you for your business!
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Room</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Item</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Dimensions</th>
-                      <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Square Footage</th>
                       <th className="text-left p-3 text-xs font-medium text-surface-500 dark:text-surface-400 hidden md:table-cell">Units</th>
-                      <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Rate</th>
+                      <th className="text-center p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Qty</th>
                       <th className="text-right p-3 text-xs font-medium text-surface-500 dark:text-surface-400">Total</th>
                     </tr>
                   </thead>
@@ -1134,12 +1124,6 @@ Thank you for your business!
                           <span className="text-xs text-surface-500 ml-1">
                             {item.measurement !== 'custom quote' && item.measurement !== 'per unit' ? item.measurement : ''}
                           </span>
-                        </td>
-                        <td className="p-3 text-right">
-                          ${typeof item.rate === 'number' ? item.rate.toFixed(2) : item.rate}
-                          {item.measurement !== 'custom quote' && item.measurement !== 'per unit' && (
-                            <span className="text-xs text-surface-500">/{item.measurement.replace('per ', '')}</span>
-                          )}
                         </td>
                         <td className="p-3 text-right font-medium">${typeof item.total === 'number' ? item.total.toFixed(2) : item.total}</td>
                       </tr>

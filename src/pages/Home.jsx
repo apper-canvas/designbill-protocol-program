@@ -17,6 +17,9 @@ const Home = () => {
   const BarChart4Icon = getIcon('bar-chart-4');
   const HeartIcon = getIcon('heart');
   
+  const TwitterIcon = getIcon('twitter');
+  const InstagramIcon = getIcon('instagram');
+  const FacebookIcon = getIcon('facebook');
   // Recent invoices data (mock)
   const recentInvoices = [
     { id: 'INV-2023-001', client: 'Emma Johnson', project: 'Modern Living Room Redesign', amount: 2850, status: 'paid', date: '2023-10-15' },
@@ -322,15 +325,20 @@ const Home = () => {
             <div className="flex space-x-4">
               <a href="#" className="text-white/50 hover:text-white transition-colors">
                 <span className="sr-only">Twitter</span>
-                <TwitterIcon className="h-5 w-5" />
-                {getIcon('instagram')({ className: "h-5 w-5" })}
+                <TwitterIcon className="h-5 w-5" />                
               </a>
               <a href="#" className="text-white/50 hover:text-white transition-colors">
+                <span className="sr-only">Instagram</span>
                 <InstagramIcon className="h-5 w-5" />
+              </a>
+              <a href="#" className="text-white/50 hover:text-white transition-colors">
+                <span className="sr-only">Facebook</span>
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
-                <FacebookIcon className="h-5 w-5" />
   );
 };
 

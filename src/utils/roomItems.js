@@ -90,11 +90,10 @@ const roomItems = {
     {
       id: 'b-side-table',
       name: 'Side Table',
-      defaultMeasurement: 'per unit',
-      name: 'Bedside Table',
       defaultRate: 180,
+      defaultMeasurement: 'per unit',
+      pricingOptions: ['per unit', 'custom quote']
     }
-    },
     {
       id: 'b-dresser',
       name: 'Dresser',
@@ -122,6 +121,7 @@ const roomItems = {
       defaultMeasurement: 'per window',
       defaultRate: 225,
       pricingOptions: ['per window', 'per sq ft', 'custom quote']
+    }
   ],
   'kitchen': [
     {

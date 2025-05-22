@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 import { calculatePaymentStats, validateUpfrontPayment } from "../utils/paymentService";
 import PaymentTracker from "../components/PaymentTracker";
 import PaymentModal from "../components/PaymentModal";

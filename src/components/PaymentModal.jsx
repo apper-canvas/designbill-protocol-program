@@ -3,6 +3,7 @@ import { getIcon } from '../utils/iconUtils';
 import { createPayment } from '../services/PaymentService';
 import { toast } from 'react-toastify';
 import { validateUpfrontPayment } from '../utils/paymentService';
+import { format } from 'date-fns';
 
 const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPayments = [] }) => {
   const [formData, setFormData] = useState({
@@ -27,47 +28,64 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
   const CalendarIcon = getIcon('calendar');
   const CreditCardIcon = getIcon('credit-card');
   const CheckIcon = getIcon('check');
-  
-  const handleSubmit = async (e) => {
+
+  useEffect(() => {
     if (invoice) {
-      // Calculate total invoice amount
-    if (!payment.amount || isNaN(parseFloat(payment.amount.replace(/[$,]/g, '')))) {
-      toast.error('Please enter a valid payment amount');
-      return;
-    }
-    
-    if (!payment.method) {
-      
-      // Calculate amounts already paid
+      const totalAmount = parseFloat(invoice.total || 0);
       const totalPaid = existingPayments.reduce((sum, payment) => 
         sum + (parseFloat(payment.amount.replace(/[$,]/g, '')) || 0), 0);
+      const remainingAmount = totalAmount - totalPaid;
+      const percentagePaid = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
+      
+      setPaymentStats({ totalAmount, totalPaid, remainingAmount, percentagePaid });
+    }
+  }, [invoice, existingPayments]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
       setIsSubmitting(true);
+      setError('');
       
-      // Format the payment amount properly
-      const amountValue = parseFloat(payment.amount.replace(/[$,]/g, ''));
+      const amount = parseFloat(formData.amount);
       
-      // Check if upfront payment is sufficient
-      if (isUpfront && !validateUpfrontPayment(amountValue, invoice.total)) {
-        const minimumAmount = (invoice.total * 0.4).toFixed(2);
-        if (!confirm(`The upfront payment should be at least 40% of the invoice total ($${minimumAmount}). Do you want to proceed anyway?`)) {
-          setIsSubmitting(false);
+      // Validate amount
+      if (isNaN(amount) || amount <= 0) {
+        setError('Please enter a valid payment amount');
+        return;
+      }
+      
+      if (amount > paymentStats.remainingAmount) {
+        setError(`Payment cannot exceed the remaining amount: $${paymentStats.remainingAmount.toFixed(2)}`);
+        return;
+      }
+      
+      // Check if this is first payment and meets 40% requirement
+      if (paymentStats.totalPaid === 0) {
+        const isUpfrontValid = validateUpfrontPayment(amount, paymentStats.totalAmount);
+        if (!isUpfrontValid) {
+          setError(`First payment must be at least 40% ($${(paymentStats.totalAmount * 0.4).toFixed(2)}) of the total invoice amount`);
           return;
         }
       }
       
-      // Create new payment record in the database
+      // Create payment record
       const paymentData = {
         Name: `Payment for ${invoice.invoiceNumber}`,
-        amount: amountValue,
-        date: payment.date,
-        method: payment.method,
+        amount: amount,
+        date: formData.date,
+        method: formData.method,
         status: 'Completed',
-        notes: payment.notes,
-        isUpfront: isUpfront,
-        invoiceId: invoice.id,
-        clientId: invoice.clientId,
-        invoiceNumber: invoice.invoiceNumber
+        notes: formData.notes,
+        isUpfront: paymentStats.totalPaid === 0,
+        invoice: invoice.id,
+        client: invoice.clientId
       };
       
       const response = await createPayment(paymentData);
@@ -76,68 +94,27 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
         throw new Error(response.error || 'Failed to record payment');
       }
       
-      // Record the payment in the local state
       const newPayment = {
-        ...payment,
-        id: response.data?.Id || `PMT-${Date.now()}`,
-        date: format(new Date(payment.date), 'MMM d, yyyy'),
-        isUpfront
+        id: response.data?.Id || `PMT-${Date.now().toString().slice(-6)}`,
+        invoiceId: invoice.id,
+        client: invoice.clientName,
+        amount: `$${amount.toFixed(2)}`,
+        date: formData.date,
+        method: formData.method,
+        notes: formData.notes,
+        status: 'Completed',
+        invoice: invoice.invoiceNumber || 'Unknown'
       };
-      const remainingAmount = totalAmount - totalPaid;
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+      
+      onPaymentRecorded(newPayment);
+      toast.success('Payment recorded successfully');
+      onClose();
     } catch (error) {
       console.error('Payment error:', error);
       toast.error(error.message || 'Failed to record payment');
     } finally {
       setIsSubmitting(false);
     }
-    setError('');
-
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const amount = parseFloat(formData.amount);
-    
-    // Validate amount
-    if (isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid payment amount');
-      return;
-    }
-    
-    if (amount > paymentStats.remainingAmount) {
-      setError(`Payment cannot exceed the remaining amount: $${paymentStats.remainingAmount.toFixed(2)}`);
-      return;
-    }
-    
-    // Check if this is first payment and meets 40% requirement
-    if (paymentStats.totalPaid === 0) {
-      const isUpfrontValid = validateUpfrontPayment(amount, paymentStats.totalAmount);
-      if (!isUpfrontValid) {
-        setError(`First payment must be at least 40% ($${(paymentStats.totalAmount * 0.4).toFixed(2)}) of the total invoice amount`);
-        return;
-      }
-    }
-    
-    // Create payment record
-    const newPayment = {
-      id: `PMT-${Date.now().toString().slice(-6)}`,
-      invoiceId: invoice.id,
-      client: invoice.clientName,
-      amount: `$${amount.toFixed(2)}`,
-      date: formData.date,
-      method: formData.method,
-      notes: formData.notes,
-      status: 'Completed',
-      invoice: invoice.invoiceNumber || 'Unknown'
-    };
-    
-    onPaymentRecorded(newPayment);
-    toast.success('Payment recorded successfully');
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -190,9 +167,13 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <CalendarIcon className="h-5 w-5 text-surface-400" />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : 'Record Payment'}
-              </button>
+              <input 
+                type="date" 
+                name="date" 
+                className="form-input pl-10" 
+                value={formData.date} 
+                onChange={handleInputChange} 
+                required />
             </div>
           </div>
           
@@ -203,7 +184,7 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
           
           <div className="flex justify-end space-x-3">
             <button type="button" onClick={onClose} className="btn btn-outline">Cancel</button>
-            <button type="submit" className="btn btn-primary flex items-center">
+            <button type="submit" className="btn btn-primary flex items-center" disabled={isSubmitting}>
               <CheckIcon className="w-5 h-5 mr-2" />
               Record Payment
             </button>

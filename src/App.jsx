@@ -1,5 +1,5 @@
-import { useState, useEffect, createContext } from 'react';
-import { Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useState, useEffect, createContext, useContext } from 'react';
+import { Routes, Route, useLocation, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
@@ -207,22 +207,21 @@ function App() {
     </div>;
   }
   return (
-    <AuthProvider>
     <AuthContext.Provider value={authMethods}>
         <ThemeToggle />
         
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={
               <PublicOnlyRoute><Login /></PublicOnlyRoute>
             } />
             <Route path="/signup" element={
               <PublicOnlyRoute><Signup /></PublicOnlyRoute>
             } />
-            <Route path="/" element={
             <Route path="/callback" element={<Callback />} />
             <Route path="/error" element={<ErrorPage />} />
+            <Route path="/" element={
               <ProtectedRoute><AppLayout /></ProtectedRoute>
             }>
               <Route path="dashboard" element={<Dashboard />} />
@@ -251,8 +250,6 @@ function App() {
         theme="colored"
         className="z-50"
       />
-      </div>
-    </AuthProvider>
     </AuthContext.Provider>
 }
 

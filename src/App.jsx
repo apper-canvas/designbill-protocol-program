@@ -251,6 +251,6 @@ function App() {
         className="z-50"
       />
     </AuthContext.Provider>
-}
+  );
 
 export default App;

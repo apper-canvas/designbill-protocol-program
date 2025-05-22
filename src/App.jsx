@@ -104,7 +104,7 @@ export function useAuth() {
   return useContext(AuthContext);
 };
 
-function App() {
+export default function App() {
   const location = useLocation();
   
   const navigate = useNavigate();
@@ -252,5 +252,3 @@ function App() {
       />
     </AuthContext.Provider>
   );
-
-export default App;

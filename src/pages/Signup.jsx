@@ -1,67 +1,44 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { getIcon } from '../utils/iconUtils';
+import { useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
-const Signup = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState({});
-  const { signup, loading } = useAuth();
+import { getIcon } from '../utils/iconUtils';
+function Signup() {
+  const navigate = useNavigate();
+  const { isInitialized } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect');
   
-  // Icons
-  const ReceiptIcon = getIcon('receipt');
-  const UserIcon = getIcon('user');
-  const MailIcon = getIcon('mail');
-  const LockIcon = getIcon('lock');
-  const LoaderIcon = getIcon('loader-2');
-  const CheckIcon = getIcon('check');
-  
-  const validate = () => {
-    const newErrors = {};
-    
-    if (!name.trim()) {
-      newErrors.name = 'Name is required';
+  useEffect(() => {
+    if (isInitialized) {
+      // Show signup UI in this component
+      const { ApperUI } = window.ApperSDK;
+      ApperUI.showSignup("#authentication");
     }
-    
-    if (!email) {
-      newErrors.email = 'Email is required';
+  }, [isInitialized]);
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Email address is invalid';
-    }
-    
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (validate()) {
-      signup(email, password, name);
-    }
-  };
-  
-  // Password strength indicator
-  const getPasswordStrength = () => {
-    if (!password) return { label: 'Weak', color: 'bg-red-500', width: '20%' };
+    <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-900">
+      <div className="w-full max-w-md space-y-8 p-6 bg-white dark:bg-surface-800 rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-surface-800 dark:text-surface-100">Create Account</h1>
+          <p className="mt-2 text-surface-600 dark:text-surface-400">Sign up for your account</p>
+        </div>
+        <div id="authentication" className="min-h-[400px]" />
+        <div className="text-center mt-4">
+          <p className="text-sm text-surface-600 dark:text-surface-400">
+            Already have an account?{' '}
+            <Link 
+              to={redirectPath ? `/login?redirect=${redirectPath}` : "/login"} 
+              className="font-medium text-primary hover:text-primary-dark"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
     
     if (password.length < 8) {
       return { label: 'Weak', color: 'bg-red-500', width: '20%' };
-    } else if (password.length >= 8 && password.length < 12) {
+}
       return { label: 'Medium', color: 'bg-yellow-500', width: '50%' };
     } else {
       return { label: 'Strong', color: 'bg-green-500', width: '100%' };

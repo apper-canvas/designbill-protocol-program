@@ -1,52 +1,44 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import { getIcon } from '../utils/iconUtils';
+import { useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
-  const { login, loading } = useAuth();
+import { toast } from 'react-toastify';
+function Login() {
+  const navigate = useNavigate();
+  const { isInitialized } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect');
   
-  // Icons
-  const ReceiptIcon = getIcon('receipt');
-  const MailIcon = getIcon('mail');
-  const LockIcon = getIcon('lock');
-  const ArrowRightIcon = getIcon('arrow-right');
-  const LoaderIcon = getIcon('loader-2');
-  
-  const validate = () => {
-    const newErrors = {};
-    
-    if (!email) {
+  useEffect(() => {
+    if (isInitialized) {
+      // Show login UI in this component
+      const { ApperUI } = window.ApperSDK;
+      ApperUI.showLogin("#authentication");
+    }
+  }, [isInitialized]);
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email address is invalid';
-    }
-    
-    if (!password) {
-      newErrors.password = 'Password is required';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (validate()) {
-      login(email, password);
-    }
-  };
-  
+    <div className="flex min-h-screen items-center justify-center bg-surface-50 dark:bg-surface-900">
+      <div className="w-full max-w-md space-y-8 p-6 bg-white dark:bg-surface-800 rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-surface-800 dark:text-surface-100">Welcome Back</h1>
+          <p className="mt-2 text-surface-600 dark:text-surface-400">Sign in to your account</p>
+        </div>
+        <div id="authentication" className="min-h-[400px]" />
+        <div className="text-center mt-4">
+          <p className="text-sm text-surface-600 dark:text-surface-400">
+            Don't have an account?{' '}
+            <Link 
+              to={redirectPath ? `/signup?redirect=${redirectPath}` : "/signup"} 
+              className="font-medium text-primary hover:text-primary-dark"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+}
       exit={{ opacity: 0 }}
       className="min-h-screen flex items-center justify-center py-12 px-4 bg-surface-50 dark:bg-surface-900"
     >

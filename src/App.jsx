@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useState, useEffect, createContext } from 'react';
+import { Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
 import { getIcon } from './utils/iconUtils';
 
 // Pages
@@ -15,9 +16,15 @@ import Clients from './pages/Clients';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
 import CreateInvoice from './pages/CreateInvoice';
+import Callback from './pages/Callback';
+import ErrorPage from './pages/ErrorPage';
 import AppLayout from './components/AppLayout';
 
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+// Redux
+import { setUser, clearUser } from './store/userSlice';
+
+// Create auth context
+export const AuthContext = createContext(null);
 
 // Components
 const ThemeToggle = () => {
@@ -67,10 +74,10 @@ const ThemeToggle = () => {
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSelector((state) => state.user);
   
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
   
   return children;
@@ -78,37 +85,144 @@ const ProtectedRoute = ({ children }) => {
 
 // Route that redirects authenticated users
 const PublicOnlyRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSelector((state) => state.user);
   const location = useLocation();
   
   if (isAuthenticated) {
     return <Navigate 
       to="/dashboard" 
       replace 
-      state={{ from: location }} />;
+      state={{ from: location }} 
+    />;
   }
   
   return children;
 };
 
+// Use auth context
+export function useAuth() {
+  return useContext(AuthContext);
+};
+
 function App() {
   const location = useLocation();
   
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Initialize ApperUI once when the app loads
+  useEffect(() => {
+    const { ApperClient, ApperUI } = window.ApperSDK;
+    const client = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+    
+    // Initialize but don't show login yet
+    ApperUI.setup(client, {
+      target: '#authentication',
+      clientId: import.meta.env.VITE_APPER_PROJECT_ID,
+      view: 'both',
+      onSuccess: function (user) {
+        setIsInitialized(true);
+        // CRITICAL: This exact currentPath logic must be preserved in all implementations
+        // DO NOT simplify or modify this pattern as it ensures proper redirection flow
+        let currentPath = window.location.pathname + window.location.search;
+        let redirectPath = new URLSearchParams(window.location.search).get('redirect');
+        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup') || currentPath.includes(
+            '/callback') || currentPath.includes('/error');
+        if (user) {
+            // User is authenticated
+            if (redirectPath) {
+                navigate(redirectPath);
+            } else if (!isAuthPage) {
+                if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+                    navigate(currentPath);
+                } else {
+                    navigate('/dashboard');
+                }
+            } else {
+                navigate('/dashboard');
+            }
+            // Store user information in Redux
+            dispatch(setUser(JSON.parse(JSON.stringify(user))));
+        } else {
+            // User is not authenticated
+            if (!isAuthPage) {
+                navigate(
+                    currentPath.includes('/signup')
+                     ? `/signup?redirect=${currentPath}`
+                     : currentPath.includes('/login')
+                     ? `/login?redirect=${currentPath}`
+                     : '/login');
+            } else if (redirectPath) {
+                if (
+                    ![
+                        'error',
+                        'signup',
+                        'login',
+                        'callback'
+                    ].some((path) => currentPath.includes(path)))
+                    navigate(`/login?redirect=${redirectPath}`);
+                else {
+                    navigate(currentPath);
+                }
+            } else if (isAuthPage) {
+                navigate(currentPath);
+            } else {
+                navigate('/login');
+            }
+            dispatch(clearUser());
+        }
+      },
+      onError: function(error) {
+        console.error("Authentication failed:", error);
+      }
+    });
+  }, []);
+  
+  // Authentication methods to share via context
+  const authMethods = {
+    isInitialized,
+    logout: async () => {
+      try {
+        const { ApperUI } = window.ApperSDK;
+        await ApperUI.logout();
+        dispatch(clearUser());
+        navigate('/login');
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+    }
+  };
+  
+  // Don't render routes until initialization is complete
+  if (!isInitialized) {
+    return <div className="loading flex justify-center items-center min-h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-surface-600 dark:text-surface-400">Initializing application...</p>
+      </div>
+    </div>;
+  }
   return (
     <AuthProvider>
-      <div className="min-h-screen flex flex-col">
+    <AuthContext.Provider value={authMethods}>
         <ThemeToggle />
         
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={
+            <Route path="/" element={<Navigate to="/login" replace />} />
               <PublicOnlyRoute><Login /></PublicOnlyRoute>
             } />
             <Route path="/signup" element={
               <PublicOnlyRoute><Signup /></PublicOnlyRoute>
             } />
             <Route path="/" element={
+            <Route path="/callback" element={<Callback />} />
+            <Route path="/error" element={<ErrorPage />} />
               <ProtectedRoute><AppLayout /></ProtectedRoute>
             }>
               <Route path="dashboard" element={<Dashboard />} />
@@ -139,7 +253,7 @@ function App() {
       />
       </div>
     </AuthProvider>
-  );
+    </AuthContext.Provider>
 }
 
 export default App;

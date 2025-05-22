@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getIcon } from '../utils/iconUtils';
+import { createPayment } from '../services/PaymentService';
 import { toast } from 'react-toastify';
 import { validateUpfrontPayment } from '../utils/paymentService';
 
@@ -12,6 +13,7 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
   });
   
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentStats, setPaymentStats] = useState({
     totalPaid: 0,
     percentagePaid: 0,
@@ -26,37 +28,74 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
   const CreditCardIcon = getIcon('credit-card');
   const CheckIcon = getIcon('check');
   
-  useEffect(() => {
+  const handleSubmit = async (e) => {
     if (invoice) {
       // Calculate total invoice amount
-      const totalAmount = invoice.total || 0;
+    if (!payment.amount || isNaN(parseFloat(payment.amount.replace(/[$,]/g, '')))) {
+      toast.error('Please enter a valid payment amount');
+      return;
+    }
+    
+    if (!payment.method) {
       
       // Calculate amounts already paid
       const totalPaid = existingPayments.reduce((sum, payment) => 
         sum + (parseFloat(payment.amount.replace(/[$,]/g, '')) || 0), 0);
+    try {
+      setIsSubmitting(true);
       
-      const percentagePaid = totalAmount > 0 ? (totalPaid / totalAmount) * 100 : 0;
+      // Format the payment amount properly
+      const amountValue = parseFloat(payment.amount.replace(/[$,]/g, ''));
+      
+      // Check if upfront payment is sufficient
+      if (isUpfront && !validateUpfrontPayment(amountValue, invoice.total)) {
+        const minimumAmount = (invoice.total * 0.4).toFixed(2);
+        if (!confirm(`The upfront payment should be at least 40% of the invoice total ($${minimumAmount}). Do you want to proceed anyway?`)) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      // Create new payment record in the database
+      const paymentData = {
+        Name: `Payment for ${invoice.invoiceNumber}`,
+        amount: amountValue,
+        date: payment.date,
+        method: payment.method,
+        status: 'Completed',
+        notes: payment.notes,
+        isUpfront: isUpfront,
+        invoiceId: invoice.id,
+        clientId: invoice.clientId,
+        invoiceNumber: invoice.invoiceNumber
+      };
+      
+      const response = await createPayment(paymentData);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to record payment');
+      }
+      
+      // Record the payment in the local state
+      const newPayment = {
+        ...payment,
+        id: response.data?.Id || `PMT-${Date.now()}`,
+        date: format(new Date(payment.date), 'MMM d, yyyy'),
+        isUpfront
+      };
       const remainingAmount = totalAmount - totalPaid;
-      
-      setPaymentStats({
-        totalPaid,
-        percentagePaid,
-        totalAmount,
-        remainingAmount
-      });
-      
-      // Set default amount to remaining amount
-      setFormData(prev => ({
-        ...prev,
-        amount: remainingAmount.toFixed(2)
-      }));
-    }
-  }, [invoice, existingPayments]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Failed to record payment');
+    } finally {
+      setIsSubmitting(false);
+    }
     setError('');
+
   };
 
   const handleSubmit = (e) => {
@@ -151,7 +190,9 @@ const PaymentModal = ({ isOpen, onClose, invoice, onPaymentRecorded, existingPay
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <CalendarIcon className="h-5 w-5 text-surface-400" />
               </div>
-              <input type="date" name="date" className="form-input pl-10" value={formData.date} onChange={handleInputChange} required />
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : 'Record Payment'}
+              </button>
             </div>
           </div>
           
